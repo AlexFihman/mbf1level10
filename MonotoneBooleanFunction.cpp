@@ -19,42 +19,6 @@ MonotoneBooleanFunction::MonotoneBooleanFunction(int dim, std::mt19937 &r) : dim
     updateMinCuts();
 }
 
-void MonotoneBooleanFunction::fill_middle()
-{
-    for (int i = 0; i < (1 << dimension); i++)
-    {
-        if (max_down[i] == 0 && !functionArray[i])
-            flip(i);
-        // functionArray[i] = true;
-    }
-    for (int i = 0; i < (1 << dimension); i++)
-    {
-        if (max_down[i] == 1 && !functionArray[i])
-            flip(i);
-        // functionArray[i] = true;
-    }
-    for (int i = 0; i < (1 << dimension); i++)
-    {
-        if (max_down[i] == 2 && !functionArray[i])
-            flip(i);
-        // functionArray[i] = true;
-    }
-    for (int i = 0; i < (1 << dimension); i++)
-    {
-        if (max_down[i] == 3 && !functionArray[i])
-            flip(i);
-        // functionArray[i] = true;
-    }
-    for (int i = 0; i < (1 << dimension); i++)
-    {
-        if (max_down[i] == 4 && !functionArray[i])
-            flip(i);
-        // functionArray[i] = true;
-    }
-    // updateMinCuts();
-    // std::cout << "mincuts size: " << min_cuts.getSize() << std::endl;
-}
-
 MonotoneBooleanFunction::~MonotoneBooleanFunction()
 {
     delete[] functionArray;

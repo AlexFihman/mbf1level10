@@ -6,7 +6,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/walk", // Specify the compiled executable
-            "args": [],
+            "args": ["1"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
