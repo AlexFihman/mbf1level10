@@ -5,36 +5,33 @@
 
 #include "ShortList.h"
 
-extern int max_down[1024];
-
-extern std::array<int, 1024> bit_count_lookup;
+extern std::array<int, (1 << DIMENSION)> bit_count_lookup;
 
 class MonotoneBooleanFunction
 {
-private:
-    int dimension; // Dimension of the boolean function
-    int weight;
-    int countA;
-    int countB;
-    bool *functionArray; // Array to store the boolean function
-    int *up_count;
-    int *down_count;
-    std::mt19937 &rng;  // Reference to Mersenne Twister random number generator
-    ShortList min_cuts; // ShortList to store the minimum cuts
+private:    
+    int weight = 0;    
+    bool functionArray[1 << DIMENSION]{0}; //The function (value of the function for each input)
+    int up_count[1 << DIMENSION]{0};
+    int down_count[1 << DIMENSION]{0};
+    int layerBitsSet[DIMENSION + 1]{0}; // Number of bits set in each layer
+    
+    static int bit_count_lookup[(1 << DIMENSION)];
+    static int max_down[(1 << DIMENSION)];
+    static int layerSize[DIMENSION + 1];
+
+    std::mt19937 &rng;
+    ShortList min_cuts;
     bool checkMinCut(int index) const;
     void updateMinCuts();
     void updateMinCutsFast(int index, bool new_value);
 
 public:
-    MonotoneBooleanFunction(int dim, std::mt19937 &r);
+    MonotoneBooleanFunction(std::mt19937 &r);
 
     MonotoneBooleanFunction(const MonotoneBooleanFunction &) = delete;
 
-    MonotoneBooleanFunction &operator=(const MonotoneBooleanFunction &) = delete;
-
-    void fill_middle();
-
-    ~MonotoneBooleanFunction();
+    MonotoneBooleanFunction &operator=(const MonotoneBooleanFunction &) = delete;    
 
     bool getFunctionValue(int index) const;
 
@@ -58,7 +55,9 @@ public:
 
     int minCutSize() const;
 
-    ShortList getMinCNF();
+    int lastEmptyLayer() const;
 
-    bool isOneLevel();
+    int firstFullLayer() const;
+
+    ShortList getMinCNF();
 };

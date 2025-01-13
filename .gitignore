@@ -31,4 +31,5 @@
 *.out
 *.app
 walk
-result.*.txt
+result.*.csv
+result/*.*

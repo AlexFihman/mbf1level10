@@ -1,29 +1,31 @@
 #include <iostream>
 #include "MonotoneBooleanFunction.h"
 
-int max_down[1024];
+int MonotoneBooleanFunction::bit_count_lookup[(1 << DIMENSION)];
+int MonotoneBooleanFunction::max_down[(1 << DIMENSION)];
+int MonotoneBooleanFunction::layerSize[(DIMENSION + 1)];
 
-int hammingDistance(uint64_t x, uint64_t y)
+int hammingDistance(uint64_t const x, uint64_t const y)
 {
     return std::bitset<64>(x ^ y).count();
 }
 
-MonotoneBooleanFunction::MonotoneBooleanFunction(int dim, std::mt19937 &r) : dimension(dim), weight(0), rng(r), min_cuts()
+MonotoneBooleanFunction::MonotoneBooleanFunction(std::mt19937 &r) : weight(0), rng(r), min_cuts()
 {
+    static bool initialized = false;
+    if (!initialized) {
+        for (int i = 0; i < (1 << DIMENSION); i++) {
+            max_down[i] = DIMENSION - __builtin_popcount(i);
+            bit_count_lookup[i] = __builtin_popcount(i);
+        }
+        layerSize[0] = 1;
+        for (int i = 1; i <= DIMENSION; i++) {
+            layerSize[i] = layerSize[i - 1] * (DIMENSION - i + 1) / i;
+        }
+        initialized = true;
+    }
 
-    functionArray = new bool[1 << dim](); // Initialize all values to false
-    up_count = new int[1 << dim]();
-    down_count = new int[1 << dim]();
-    countA = 0;
-    countB = 0;
     updateMinCuts();
-}
-
-MonotoneBooleanFunction::~MonotoneBooleanFunction()
-{
-    delete[] functionArray;
-    delete[] up_count;
-    delete[] down_count;
 }
 
 bool MonotoneBooleanFunction::getFunctionValue(int index) const
@@ -41,11 +43,8 @@ void MonotoneBooleanFunction::flip(int index)
 {
     functionArray[index] = !functionArray[index];
     weight += functionArray[index] ? 1 : -1;
-    int index_bits = bit_count_lookup[index];
-    if (index_bits < 5)
-        countA += functionArray[index] ? 1 : -1;
-    else if (index_bits > 5)
-        countB += functionArray[index] ? 1 : -1;
+    int index_bits = bit_count_lookup[index];    
+    layerBitsSet[index_bits] += functionArray[index] ? 1 : -1;
 
     updateMinCutsFast(index, functionArray[index]);
 }
@@ -56,10 +55,7 @@ void MonotoneBooleanFunction::flipRandom()
     functionArray[index] = !functionArray[index];
     weight += functionArray[index] ? 1 : -1;
     int index_bits = bit_count_lookup[index];
-    if (index_bits < 5)
-        countA += functionArray[index] ? 1 : -1;
-    else if (index_bits > 5)
-        countB += functionArray[index] ? 1 : -1;
+    layerBitsSet[index_bits] += functionArray[index] ? 1 : -1;
     updateMinCutsFast(index, functionArray[index]);
 }
 
@@ -73,7 +69,7 @@ void MonotoneBooleanFunction::step()
 
 bool MonotoneBooleanFunction::checkMinCut(int index) const
 {
-    for (int k = 0; k < dimension; k++)
+    for (int k = 0; k < DIMENSION; k++)
     {
         int idx2 = index ^ (1 << k);
         // std::cout << "idx2: " << idx2 << "\t" << "value: " << functionArray[index] << std::endl;
@@ -88,16 +84,16 @@ bool MonotoneBooleanFunction::checkMinCut(int index) const
 void MonotoneBooleanFunction::updateMinCuts()
 {
     min_cuts.clear();
-    for (int index = 0; index < (1 << dimension); index++)
+    for (int index = 0; index < (1 << DIMENSION); index++)
     {
         down_count[index] = 0;
         up_count[index] = 0;
     }
 
-    for (int index = 0; index < (1 << dimension); index++)
+    for (int index = 0; index < (1 << DIMENSION); index++)
     {
         if (functionArray[index])
-            for (int k = 0; k < dimension; k++)
+            for (int k = 0; k < DIMENSION; k++)
             {
                 int idx2 = index ^ (1 << k);
 
@@ -108,7 +104,7 @@ void MonotoneBooleanFunction::updateMinCuts()
             }
     }
 
-    for (int i = 0; i < (1 << dimension); i++)
+    for (int i = 0; i < (1 << DIMENSION); i++)
     {
         if (up_count[i] == 0 && down_count[i] == max_down[i])
             min_cuts.insert(i);
@@ -123,7 +119,7 @@ bool MonotoneBooleanFunction::is_mincut(int index)
 void MonotoneBooleanFunction::update_counts(int index, bool new_value)
 {
     int delta = new_value ? 1 : -1;
-    for (int k = 0; k < dimension; k++)
+    for (int k = 0; k < DIMENSION; k++)
     {
         int idx2 = index ^ (1 << k);
 
@@ -187,12 +183,37 @@ ShortList MonotoneBooleanFunction::getMinCNF()
     return result;
 }
 
-bool MonotoneBooleanFunction::isOneLevel()
-{
-    return (countA == 0) && (countB == 386);
-}
-
 int MonotoneBooleanFunction::getWeight() const
 {
     return weight;
+}
+
+int MonotoneBooleanFunction::lastEmptyLayer() const
+{
+    int result = -1;
+    for (int i = 0; i <= DIMENSION; i++)
+    {
+        if (layerBitsSet[i] == 0)
+        {
+            result = i;            
+        } 
+        else
+            break;
+    }
+    return result;
+}
+
+int MonotoneBooleanFunction::firstFullLayer() const
+{    
+    int result = DIMENSION + 1;
+    for (int i = DIMENSION; i >= 0; i--)
+    {
+        if (layerBitsSet[i] == layerSize[i])
+        {
+            result = i;            
+        } 
+        else
+            break;
+    }
+    return result;
 }

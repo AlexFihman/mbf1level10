@@ -20,12 +20,10 @@ double time_seconds()
     return 1e-9 * std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()).count();
 }
 
-std::array<int, 1024> bit_count_lookup;
-
 int main(int argc, char* argv[])
 {
     if (argc < 2) {
-        std::cerr << "Error: No argument provided. Please provide an integer argument." << std::endl;
+        std::cerr << "Error: No argument provided. Please provide batch number - an integer argument." << std::endl;
         return EXIT_FAILURE;
     }
 
@@ -36,30 +34,18 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-
-
     std::mt19937 rng(batchNo);
-    std::string filename = "result." +  std::to_string(batchNo) + ".txt";
+    std::string filename = "result." +  std::to_string(batchNo) + ".csv";
     std::ofstream outfile(filename);
     if (!outfile.is_open()) {
         std::cerr << "Error creating file '" << filename << "'" << std::endl;
         return EXIT_FAILURE;
     }
     outfile << std::scientific << std::setprecision(17);
-    
-    const int dim = 10;
 
-    for (int i = 0; i < (1 << dim); i++)
-        max_down[i] = dim - __builtin_popcount(i);
+    MonotoneBooleanFunction mbf1(rng);
 
-    for (int i = 0; i < (1 << dim); i++)
-    {
-        bit_count_lookup[i] = __builtin_popcount(i);
-    }
-
-    MonotoneBooleanFunction mbf1(dim, rng);
-
-    for (int i = 0; i < 30000; i++)
+    for (int i = 0; i < 90000; i++)
     {
         mbf1.flipRandom();
     }
@@ -67,25 +53,24 @@ int main(int argc, char* argv[])
     for (int loop = 0; loop < 10; loop++)
     {
         double startTime = time_seconds();
+        double stat[(DIMENSION + 2)*(DIMENSION + 2)] = {0.0};
 
-        double p1L = 0;
-        double pNot1L = 0;
-
-        for (int i = 0; i < 100000000; i++)
+        for (int64_t i = 0; i < 100000000; i++)
         {
             mbf1.flipRandom();
-            if (mbf1.isOneLevel())
-            {
-                p1L += 1.0 / mbf1.minCutSize();
-            }
-            else
-            {
-                pNot1L += 1.0 / mbf1.minCutSize();
-            }
+            int l0 = mbf1.lastEmptyLayer();
+            int l1 = mbf1.firstFullLayer();
+            stat[(l0 + 1) * (DIMENSION + 2) + l1] += 1.0/mbf1.minCutSize();
         }
         double endTime = time_seconds();
-
-        outfile << batchNo << "\t" << loop << "\t" << (endTime - startTime) << "\t" << p1L << "\t" << (p1L + pNot1L) << std::endl;
+        
+        for (int i = 0; i < (DIMENSION + 2)*(DIMENSION + 2); i++)
+        {
+            if (stat[i] > 0)
+            {
+                outfile <<  batchNo << "," << loop << "," << (endTime - startTime) << "," << (i / (DIMENSION + 2) - 1) << "," << i % (DIMENSION + 2) << "," << (stat[i]) << std::endl;
+            }
+        }
     }
     outfile.close();
 

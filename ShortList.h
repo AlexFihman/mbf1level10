@@ -1,14 +1,15 @@
 #pragma once
 
-#include <random> // For std::mt19937
+#include <random>
+#define DIMENSION 11
 
 class ShortList
 {
 private:
-    static const int MAX_SIZE = 1024; // Maximum size of the list
-    int arr[MAX_SIZE];                // Array to store integers
-    int indexArr[MAX_SIZE];           // Array to store the index of each integer
-    int size;                         // Current size of the list
+    static const int MAX_SIZE = 1 << DIMENSION;
+    int arr[MAX_SIZE];
+    int indexArr[MAX_SIZE];
+    int size;
 
 public:
     ShortList();
