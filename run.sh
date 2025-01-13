@@ -4,7 +4,7 @@
 program_folder="."
 
 # Total number of batches
-total_batches=1000
+total_batches=4000
 
 # Maximum number of parallel jobs
 max_parallel_jobs=16
