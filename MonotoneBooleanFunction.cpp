@@ -51,9 +51,9 @@ void MonotoneBooleanFunction::flip(int index)
     weight += functionArray[index] ? 1 : -1;
     int index_bits = bit_count_lookup[index];        
 
-    if (index_bits < 5)
+    if (index_bits < mid_layer)
         countA += functionArray[index] ? 1 : -1;
-    else if (index_bits > 5)
+    else if (index_bits > mid_layer)
         countB += functionArray[index] ? 1 : -1;
 
     updateMinCutsFast(index, functionArray[index]);
@@ -66,9 +66,9 @@ void MonotoneBooleanFunction::flipRandom()
     weight += functionArray[index] ? 1 : -1;
     int index_bits = bit_count_lookup[index];
 
-    if (index_bits < 5)
+    if (index_bits < mid_layer)
         countA += functionArray[index] ? 1 : -1;
-    else if (index_bits > 5)
+    else if (index_bits > mid_layer)
         countB += functionArray[index] ? 1 : -1;
     
     updateMinCutsFast(index, functionArray[index]);
