@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
         }
         double endTime = time_seconds();
 
-        outfile << batchNo << "\t" << loop << "\t" << (endTime - startTime) << "\t" << p1L << "\t" << (p1L + pNot1L) << std::endl;
+        outfile << batchNo << "," << loop << "," << (endTime - startTime) << "," << p1L << "," << (p1L + pNot1L) << std::endl;
     }
     outfile.close();
 

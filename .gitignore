@@ -33,3 +33,7 @@
 walk
 result.*.csv
 result/*.*
+res.csv
+res.db
+result.csv
+runtime.csv
