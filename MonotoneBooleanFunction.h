@@ -10,11 +10,13 @@ extern std::array<int, (1 << DIMENSION)> bit_count_lookup;
 class MonotoneBooleanFunction
 {
 private:    
-    int weight = 0;    
+    int weight = 0;
+    int countA = 0;
+    int countB = 0;
+    int mid_layer = DIMENSION / 2;
     bool functionArray[1 << DIMENSION]{0}; //The function (value of the function for each input)
     int up_count[1 << DIMENSION]{0};
     int down_count[1 << DIMENSION]{0};
-    int layerBitsSet[DIMENSION + 1]{0}; // Number of bits set in each layer
     
     static int bit_count_lookup[(1 << DIMENSION)];
     static int max_down[(1 << DIMENSION)];
@@ -49,15 +51,11 @@ public:
 
     bool is_mincut(int index);
 
-    void update_counts(int index, bool new_value);
-
     void printMinCuts() const;
 
     int minCutSize() const;
 
-    int lastEmptyLayer() const;
-
-    int firstFullLayer() const;
-
     ShortList getMinCNF();
+
+    bool isOneLevel() const;
 };

@@ -9,10 +9,13 @@ CXXFLAGS = -std=c++17 -Wall -Wextra -g -O3 -DSFMT_MEXP=19937
 CFLAGS = -Wall -Wextra -O3 -DSFMT_MEXP=19937
 
 # Source files
-SRCS = $(wildcard *.cpp) SFMT-src-1.5.1/SFMT.c
+CPPSRCS = $(wildcard *.cpp)
+CSRCS = SFMT-src-1.5.1/SFMT.c
 
 # Object files
-OBJS = $(SRCS:.cpp=.o)
+CPPOBJS = $(CPPSRCS:.cpp=.o)
+COBJS = $(CSRCS:.c=.o)
+OBJS = $(CPPOBJS) $(COBJS)
 
 # Executable
 TARGET = walk
@@ -34,4 +37,4 @@ SFMT-src-1.5.1/%.o: SFMT-src-1.5.1/%.c
 
 # Clean target
 clean:
-	rm -f $(OBJS) $(TARGET)
+	rm -f $(CPPOBJS) $(COBJS) $(TARGET)

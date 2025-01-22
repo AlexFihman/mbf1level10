@@ -4,6 +4,7 @@
 int MonotoneBooleanFunction::bit_count_lookup[(1 << DIMENSION)];
 int MonotoneBooleanFunction::max_down[(1 << DIMENSION)];
 int MonotoneBooleanFunction::layerSize[(DIMENSION + 1)];
+int max_b;
 
 int hammingDistance(uint64_t const x, uint64_t const y)
 {
@@ -22,8 +23,13 @@ MonotoneBooleanFunction::MonotoneBooleanFunction(sfmt_t* sfmt) : weight(0), sfmt
         for (int i = 1; i <= DIMENSION; i++) {
             layerSize[i] = layerSize[i - 1] * (DIMENSION - i + 1) / i;
         }
+        max_b = 0;
+        for (int i= mid_layer + 1; i<= DIMENSION; i++) {
+            max_b += layerSize[i];
+        }
         initialized = true;
-    }
+        countB = -max_b;
+    }    
 
     updateMinCuts();
 }
@@ -43,8 +49,12 @@ void MonotoneBooleanFunction::flip(int index)
 {
     functionArray[index] = !functionArray[index];
     weight += functionArray[index] ? 1 : -1;
-    int index_bits = bit_count_lookup[index];    
-    layerBitsSet[index_bits] += functionArray[index] ? 1 : -1;
+    int index_bits = bit_count_lookup[index];        
+
+    if (index_bits < 5)
+        countA += functionArray[index] ? 1 : -1;
+    else if (index_bits > 5)
+        countB += functionArray[index] ? 1 : -1;
 
     updateMinCutsFast(index, functionArray[index]);
 }
@@ -55,7 +65,12 @@ void MonotoneBooleanFunction::flipRandom()
     functionArray[index] = !functionArray[index];
     weight += functionArray[index] ? 1 : -1;
     int index_bits = bit_count_lookup[index];
-    layerBitsSet[index_bits] += functionArray[index] ? 1 : -1;
+
+    if (index_bits < 5)
+        countA += functionArray[index] ? 1 : -1;
+    else if (index_bits > 5)
+        countB += functionArray[index] ? 1 : -1;
+    
     updateMinCutsFast(index, functionArray[index]);
 }
 
@@ -89,7 +104,7 @@ void MonotoneBooleanFunction::updateMinCuts()
     min_cuts.clear();
     for (int index = 0; index < (1 << DIMENSION); index++)
     {
-        down_count[index] = 0;
+        down_count[index] = -max_down[index];
         up_count[index] = 0;
     }
 
@@ -109,17 +124,17 @@ void MonotoneBooleanFunction::updateMinCuts()
 
     for (int i = 0; i < (1 << DIMENSION); i++)
     {
-        if (up_count[i] == 0 && down_count[i] == max_down[i])
+        if (up_count[i] == 0 && down_count[i] == 0)
             min_cuts.insert(i);
     }
 }
 
 bool MonotoneBooleanFunction::is_mincut(int index)
 {
-    return up_count[index] == 0 && down_count[index] == max_down[index];
+    return up_count[index] == 0 && down_count[index] == 0;
 }
 
-void MonotoneBooleanFunction::update_counts(int index, bool new_value)
+void MonotoneBooleanFunction::updateMinCutsFast(int index, bool new_value)
 {
     int delta = new_value ? 1 : -1;
     for (int k = 0; k < DIMENSION; k++)
@@ -128,34 +143,33 @@ void MonotoneBooleanFunction::update_counts(int index, bool new_value)
 
         if (idx2 > index)
         {
+            int prev = up_count[idx2];
             up_count[idx2] += delta;
-            if (is_mincut(idx2))
+            if (up_count[idx2] == 0)
             {
                 min_cuts.insert(idx2);
             }
             else
             {
-                min_cuts.remove(idx2);
+                if (prev == 0)
+                    min_cuts.remove(idx2);
             }
         }
         else
         {
+            int prev = down_count[idx2];
             down_count[idx2] += delta;
-            if (is_mincut(idx2))
+            if (down_count[idx2] == 0)            
             {
                 min_cuts.insert(idx2);
             }
             else
             {
-                min_cuts.remove(idx2);
+                if (prev == 0)
+                    min_cuts.remove(idx2);
             }
         }
     }
-}
-
-void MonotoneBooleanFunction::updateMinCutsFast(int index, bool new_value)
-{
-    update_counts(index, new_value);
 }
 
 int MonotoneBooleanFunction::getRandomMinCut() const
@@ -191,32 +205,7 @@ int MonotoneBooleanFunction::getWeight() const
     return weight;
 }
 
-int MonotoneBooleanFunction::lastEmptyLayer() const
+bool MonotoneBooleanFunction::isOneLevel() const
 {
-    int result = -1;
-    for (int i = 0; i <= DIMENSION; i++)
-    {
-        if (layerBitsSet[i] == 0)
-        {
-            result = i;            
-        } 
-        else
-            break;
-    }
-    return result;
-}
-
-int MonotoneBooleanFunction::firstFullLayer() const
-{    
-    int result = DIMENSION + 1;
-    for (int i = DIMENSION; i >= 0; i--)
-    {
-        if (layerBitsSet[i] == layerSize[i])
-        {
-            result = i;            
-        } 
-        else
-            break;
-    }
-    return result;
+    return (countA == 0) && (countB == 0);
 }

@@ -54,24 +54,25 @@ int main(int argc, char* argv[])
     for (int loop = 0; loop < 10; loop++)
     {
         double startTime = time_seconds();
-        double stat[(DIMENSION + 2)*(DIMENSION + 2)] = {0.0};
 
-        for (int64_t i = 0; i < 100000000; i++)
+        double p1L = 0;
+        double pNot1L = 0;
+
+        for (int i = 0; i < 100000000; i++)
         {
             mbf1.flipRandom();
-            int l0 = mbf1.lastEmptyLayer();
-            int l1 = mbf1.firstFullLayer();
-            stat[(l0 + 1) * (DIMENSION + 2) + l1] += 1.0/mbf1.minCutSize();
-        }
-        double endTime = time_seconds();
-        
-        for (int i = 0; i < (DIMENSION + 2)*(DIMENSION + 2); i++)
-        {
-            if (stat[i] > 0)
+            if (mbf1.isOneLevel())
             {
-                outfile <<  batchNo << "," << loop << "," << (endTime - startTime) << "," << (i / (DIMENSION + 2) - 1) << "," << i % (DIMENSION + 2) << "," << (stat[i]) << std::endl;
+                p1L += 1.0 / mbf1.minCutSize();
+            }
+            else
+            {
+                pNot1L += 1.0 / mbf1.minCutSize();
             }
         }
+        double endTime = time_seconds();
+
+        outfile << batchNo << "\t" << loop << "\t" << (endTime - startTime) << "\t" << p1L << "\t" << (p1L + pNot1L) << std::endl;
     }
     outfile.close();
 
