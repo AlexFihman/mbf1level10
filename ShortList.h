@@ -1,7 +1,7 @@
 #pragma once
 
 #include <random>
-#define DIMENSION 11
+#define DIMENSION 10
 
 class ShortList
 {
