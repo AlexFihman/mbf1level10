@@ -40,9 +40,11 @@ bool ShortList::remove(int num)
     return false;
 }
 
-int ShortList::getRandomElement(std::mt19937 &rng) const
+int ShortList::getRandomElement(sfmt_t* sfmt) const
 {
-    return arr[rng() % size];
+    uint32_t r = sfmt_genrand_uint32(sfmt);
+    uint32_t random_in_range = (r * size) >> 32;
+    return arr[random_in_range];
 }
 
 int ShortList::getSize() const

@@ -20,14 +20,14 @@ private:
     static int max_down[(1 << DIMENSION)];
     static int layerSize[DIMENSION + 1];
 
-    std::mt19937 &rng;
+    sfmt_t* sfmt;
     ShortList min_cuts;
     bool checkMinCut(int index) const;
     void updateMinCuts();
     void updateMinCutsFast(int index, bool new_value);
 
 public:
-    MonotoneBooleanFunction(std::mt19937 &r);
+    MonotoneBooleanFunction(sfmt_t* sfmt);
 
     MonotoneBooleanFunction(const MonotoneBooleanFunction &) = delete;
 

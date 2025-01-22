@@ -1,6 +1,5 @@
 #include <iostream>
 #include <fstream>
-#include <random>
 #include <iomanip>
 #include <chrono>
 #include <array>
@@ -34,7 +33,9 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    std::mt19937 rng(batchNo);
+    sfmt_t* sfmt = new sfmt_t;
+    sfmt_init_gen_rand(sfmt, batchNo);
+
     std::string filename = "result." +  std::to_string(batchNo) + ".csv";
     std::ofstream outfile(filename);
     if (!outfile.is_open()) {
@@ -43,7 +44,7 @@ int main(int argc, char* argv[])
     }
     outfile << std::scientific << std::setprecision(17);
 
-    MonotoneBooleanFunction mbf1(rng);
+    MonotoneBooleanFunction mbf1(sfmt);
 
     for (int i = 0; i < 90000; i++)
     {

@@ -10,7 +10,7 @@ int hammingDistance(uint64_t const x, uint64_t const y)
     return std::bitset<64>(x ^ y).count();
 }
 
-MonotoneBooleanFunction::MonotoneBooleanFunction(std::mt19937 &r) : weight(0), rng(r), min_cuts()
+MonotoneBooleanFunction::MonotoneBooleanFunction(sfmt_t* sfmt) : weight(0), sfmt(sfmt), min_cuts()
 {
     static bool initialized = false;
     if (!initialized) {
@@ -61,10 +61,13 @@ void MonotoneBooleanFunction::flipRandom()
 
 void MonotoneBooleanFunction::step()
 {
+    uint32_t r;
     do
     {
         flipRandom();
-    } while (rng() % minCutSize() != 0);
+        r = ((uint64_t)sfmt_genrand_uint32(sfmt) * minCutSize()) >> 32;
+
+    } while (r != 0);
 }
 
 bool MonotoneBooleanFunction::checkMinCut(int index) const
@@ -157,7 +160,7 @@ void MonotoneBooleanFunction::updateMinCutsFast(int index, bool new_value)
 
 int MonotoneBooleanFunction::getRandomMinCut() const
 {
-    return min_cuts.getRandomElement(rng);
+    return min_cuts.getRandomElement(sfmt);
 }
 
 void MonotoneBooleanFunction::printMinCuts() const
