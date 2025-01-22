@@ -42,9 +42,8 @@ bool ShortList::remove(int num)
 
 int ShortList::getRandomElement(sfmt_t* sfmt) const
 {
-    uint32_t r = sfmt_genrand_uint32(sfmt);
-    uint32_t random_in_range = (r * size) >> 32;
-    return arr[random_in_range];
+    uint32_t r = sfmt_genrand_uint32(sfmt);    
+    return arr[((uint64_t)r * size) >> 32];
 }
 
 int ShortList::getSize() const
