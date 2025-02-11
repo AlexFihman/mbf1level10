@@ -53,22 +53,28 @@ int main(int argc, char* argv[])
     for (int loop = 0; loop < 10; loop++)
     {
         double startTime = time_seconds();
-        double stat[(DIMENSION + 2)*(DIMENSION + 2)] = {0.0};
+        //double stat[(DIMENSION + 2)*(DIMENSION + 2)] = {0.0};
+        double stat_lbs[1000*1000] = {0.0};
 
-        for (int64_t i = 0; i < 100000000; i++)
+        for (int64_t i = 0; i < 100000000LL; i++)
         {
             mbf1.flipRandom();
             int l0 = mbf1.lastEmptyLayer();
             int l1 = mbf1.firstFullLayer();
-            stat[(l0 + 1) * (DIMENSION + 2) + l1] += 1.0/mbf1.minCutSize();
+            //stat[(l0 + 1) * (DIMENSION + 2) + l1] += 1.0/mbf1.minCutSize();
+            if ((l0 == 3 || l0 ==4) && (l1 == 6 || l1 == 7))
+            {
+                int lbs = mbf1.getLayerBitsSet(4) * 1000 + (210 - mbf1.getLayerBitsSet(6));
+                stat_lbs[lbs] += 1.0/mbf1.minCutSize();
+            }
         }
         double endTime = time_seconds();
         
-        for (int i = 0; i < (DIMENSION + 2)*(DIMENSION + 2); i++)
+        for (int i = 0; i < 1000*1000; i++)
         {
-            if (stat[i] > 0)
+            if (stat_lbs[i] > 0)
             {
-                outfile <<  batchNo << "," << loop << "," << (endTime - startTime) << "," << (i / (DIMENSION + 2) - 1) << "," << i % (DIMENSION + 2) << "," << (stat[i]) << std::endl;
+                outfile <<  batchNo << "," << loop << "," << (endTime - startTime) << "," << (i / 1000) << "," << i % 1000 << "," << (stat_lbs[i]) << std::endl;
             }
         }
     }

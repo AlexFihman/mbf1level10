@@ -14,7 +14,7 @@ private:
     bool functionArray[1 << DIMENSION]{0}; //The function (value of the function for each input)
     int up_count[1 << DIMENSION]{0};
     int down_count[1 << DIMENSION]{0};
-    int layerBitsSet[DIMENSION + 1]{0}; // Number of bits set in each layer
+    int layerBitsSet[DIMENSION + 1]{0};
     
     static int bit_count_lookup[(1 << DIMENSION)];
     static int max_down[(1 << DIMENSION)];
@@ -26,7 +26,8 @@ private:
     void updateMinCuts();
     void updateMinCutsFast(int index, bool new_value);
 
-public:
+public:     
+
     MonotoneBooleanFunction(std::mt19937 &r);
 
     MonotoneBooleanFunction(const MonotoneBooleanFunction &) = delete;
@@ -58,6 +59,8 @@ public:
     int lastEmptyLayer() const;
 
     int firstFullLayer() const;
+
+    int getLayerBitsSet(int index) const;
 
     ShortList getMinCNF();
 };

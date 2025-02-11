@@ -217,3 +217,8 @@ int MonotoneBooleanFunction::firstFullLayer() const
     }
     return result;
 }
+
+int MonotoneBooleanFunction::getLayerBitsSet(int index) const
+{
+    return layerBitsSet[index];
+}
